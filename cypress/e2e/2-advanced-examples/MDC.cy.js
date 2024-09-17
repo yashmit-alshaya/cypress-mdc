@@ -34,18 +34,11 @@ describe("MDC", () => {
   });
 
   it("Filters", () => {
-    cy.wait(3000);
-    // cy.get(".data-grid-filters-action-wrap button.action-default")
-    //   .eq(0)
-    //   .click();
     cy.get(
       '[data-bind="afterRender: $data.setToolbarNode"] > :nth-child(1) > .data-grid-filters-actions-wrap > .data-grid-filters-action-wrap > .action-default'
     ).click({ force: true });
-    cy.wait(3000);
-    // cy.get("select[name='store_id']").click();
-    // cy.wait(3000);
+
     cy.get("select[name='store_id']").select("All Store Views");
-    cy.wait(3000);
     cy.get("button[data-action='grid-filter-apply']").click();
   });
 
@@ -54,12 +47,42 @@ describe("MDC", () => {
   });
 
   it("Get Order Time", () => {
-    // Assuming you have an element with the class 'my-class'
     cy.get(".order-information-table tr:nth-of-type(1) td")
       .invoke("text")
-      .then((text) => {
-        // Do something with the text
-        cy.log(text);
-      });
+      .as("text_needed");
+
+    cy.get("@text_needed").then((txtneeded) => {
+      cy.log(`Date: ${txtneeded}`);
+      let order_date = new Date(`${txtneeded}`);
+      cy.log(`${order_date}`);
+      let order_date_str = order_date.toISOString();
+      const istDate = new Date(order_date_str);
+      istDate.setHours(istDate.getHours() + 5, istDate.getMinutes() + 30);
+      const order_date_IST = istDate.toISOString();
+      cy.log(order_date_IST);
+
+      // Current Time
+      let currentDate = new Date();
+      // Adjusting back to IST
+      const current_date = new Date(
+        currentDate.getTime() + 5.5 * 60 * 60 * 1000
+      );
+      const current_date_IST = current_date.toISOString();
+
+      cy.log(current_date_IST);
+
+      let d1 = new Date(order_date_IST);
+      let d2 = new Date(current_date_IST);
+
+      let differnce = d2 - d1;
+      cy.log(`Difference: ${differnce}`);
+      if (differnce > 7200000) {
+        cy.log(
+          `Last order was placed on ${txtneeded}. The difference is more than 2 hours.`
+        );
+      } else {
+        cy.log("The difference is less than or equal to 2 hours.");
+      }
+    });
   });
 });
